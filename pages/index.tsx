@@ -3,6 +3,7 @@ import Head from 'next/head'
 import MeditationForm from '../components/MeditationForm'
 import MeditationPlayer from '../components/MeditationPlayer'
 import { MeditationAudio } from '../lib/types'
+import { Analytics } from "@vercel/analytics/react"
 
 export default function Home() {
   const [meditationAudios, setMeditationAudios] = useState<MeditationAudio[]>([])

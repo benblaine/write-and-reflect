@@ -17,7 +17,7 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
 
   useEffect(() => {
     if (currentIndex > audioFiles.length) {
-      setIsPlaying(false)
+      endMeditation()
       return
     }
 
@@ -31,14 +31,7 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
             if (prevTime <= 1) {
               clearInterval(intervalId)
               if (currentIndex === audioFiles.length) {
-                // Play gong and stop background music
-                if (gongAudioRef.current) {
-                  gongAudioRef.current.play()
-                }
-                if (backgroundAudioRef.current) {
-                  backgroundAudioRef.current.pause()
-                }
-                setIsPlaying(false)
+                endMeditation()
               } else {
                 setIsPaused(false)
                 setCurrentIndex(prevIndex => prevIndex + 1)
@@ -70,6 +63,10 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
   }
 
   const handleStop = () => {
+    endMeditation()
+  }
+
+  const endMeditation = () => {
     setIsPlaying(false)
     setCurrentIndex(0)
     setIsPaused(false)
@@ -77,6 +74,9 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
     if (backgroundAudioRef.current) {
       backgroundAudioRef.current.pause()
       backgroundAudioRef.current.currentTime = 0
+    }
+    if (gongAudioRef.current) {
+      gongAudioRef.current.play()
     }
   }
 
@@ -139,7 +139,7 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
           </div>
         </div>
       )}
-      {!isPlaying && currentIndex > audioFiles.length && (
+      {!isPlaying && currentIndex > 0 && (
         <div className="text-lg font-medium mt-4">
           Meditation complete. Take a moment to reflect on your experience.
         </div>
