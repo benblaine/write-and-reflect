@@ -1,30 +1,13 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 import { MeditationAudio } from '../lib/types'
 
 interface AudioPlayerProps {
   audio: MeditationAudio
-  onEnded: () => void
   autoPlay: boolean
 }
 
-export default function AudioPlayer({ audio, onEnded, autoPlay }: AudioPlayerProps) {
+export default function AudioPlayer({ audio, autoPlay }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
-
-  const handleEnded = useCallback(() => {
-    onEnded()
-  }, [onEnded])
-
-  useEffect(() => {
-    const currentAudio = audioRef.current
-    if (currentAudio) {
-      currentAudio.addEventListener('ended', handleEnded)
-    }
-    return () => {
-      if (currentAudio) {
-        currentAudio.removeEventListener('ended', handleEnded)
-      }
-    }
-  }, [handleEnded])
 
   useEffect(() => {
     if (autoPlay && audioRef.current) {

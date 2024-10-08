@@ -13,9 +13,10 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
   const [pauseTimeRemaining, setPauseTimeRemaining] = useState(0)
   const [backgroundVolume, setBackgroundVolume] = useState(0.3)
   const backgroundAudioRef = useRef<HTMLAudioElement>(null)
+  const gongAudioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
-    if (currentIndex >= audioFiles.length) {
+    if (currentIndex > audioFiles.length) {
       setIsPlaying(false)
       return
     }
@@ -29,7 +30,19 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
           setPauseTimeRemaining((prevTime) => {
             if (prevTime <= 1) {
               clearInterval(intervalId)
-              setIsPaused(false)
+              if (currentIndex === audioFiles.length) {
+                // Play gong and stop background music
+                if (gongAudioRef.current) {
+                  gongAudioRef.current.play()
+                }
+                if (backgroundAudioRef.current) {
+                  backgroundAudioRef.current.pause()
+                }
+                setIsPlaying(false)
+              } else {
+                setIsPaused(false)
+                setCurrentIndex(prevIndex => prevIndex + 1)
+              }
               return 0
             }
             return prevTime - 1
@@ -47,13 +60,10 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
     }
   }, [backgroundVolume])
 
-  const handleAudioEnded = () => {
-    setCurrentIndex(prevIndex => prevIndex + 1)
-  }
-
   const handleStart = () => {
     setIsPlaying(true)
     setCurrentIndex(0)
+    setIsPaused(false)
     if (backgroundAudioRef.current) {
       backgroundAudioRef.current.play()
     }
@@ -108,18 +118,18 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
         />
       </div>
       <audio ref={backgroundAudioRef} src="/background.mp3" loop />
+      <audio ref={gongAudioRef} src="/gong.mp3" />
       {audioFiles.map((audio, index) => (
         <AudioPlayer
           key={index}
           audio={audio}
-          onEnded={handleAudioEnded}
           autoPlay={isPlaying && currentIndex === index && !isPaused}
         />
       ))}
       {isPlaying && isPaused && (
         <div className="mt-4">
           <div className="text-lg font-medium mb-2">
-            Paused for reflection. Next guidance will begin in {pauseTimeRemaining} seconds.
+            Paused for reflection. {currentIndex < audioFiles.length ? "Next guidance will begin in" : "Meditation will end in"} {pauseTimeRemaining} seconds.
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
             <div 
@@ -129,7 +139,7 @@ export default function MeditationPlayer({ audioFiles }: MeditationPlayerProps) 
           </div>
         </div>
       )}
-      {!isPlaying && currentIndex >= audioFiles.length && (
+      {!isPlaying && currentIndex > audioFiles.length && (
         <div className="text-lg font-medium mt-4">
           Meditation complete. Take a moment to reflect on your experience.
         </div>
