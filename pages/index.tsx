@@ -26,6 +26,7 @@ export default function Home() {
           <MeditationPlayer audioFiles={meditationAudios} />
         </div>
       )}
+      <Analytics />
     </div>
   )
 }
