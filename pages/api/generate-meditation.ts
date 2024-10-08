@@ -12,30 +12,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { input } = req.body
 
     const intervals = [
-      { 
-        time: '0min', 
-        title: 'Initial Guidance', 
-        prompt: `Create a vivid, visual scenario for a meditation on "${input}". Set the scene in 2-3 short sentences, preparing the mind for 2 minutes of focused reflection.`
-      },
-      { 
-        time: '2min', 
-        title: 'Mid-Session Guidance', 
-        prompt: `Continue the meditation on "${input}". Provide a powerful visual or scenario that builds upon the initial guidance. Use 2-3 concise sentences to guide the next 2 minutes of focused contemplation.`
-      },
-      { 
-        time: '4min', 
-        title: 'Closing Guidance', 
-        prompt: `Conclude the meditation on "${input}" by bringing the journey full circle. Use 2-3 brief sentences to provide a final impactful image or scenario that ties back to the initial and mid-session guidance. Prepare for post-meditation reflection.`
-      }
+      { time: '0min', title: 'Opening Guidance', stage: 'opening' as const },
+      { time: '2min', title: 'Deepening Experience', stage: 'deepening' as const },
+      { time: '4min', title: 'Guiding Towards Insight', stage: 'insight' as const },
     ]
 
-    let previousGuidance = ''
     const meditationTexts = await Promise.all(
-      intervals.map(async (interval, index) => {
-        const fullPrompt = `${interval.prompt} ${index > 0 ? `Previous guidance: ${previousGuidance}` : ''}`
-        const generatedText = await generateMeditationText(fullPrompt)
-        previousGuidance = generatedText
-        return generatedText
+      intervals.map(async (interval) => {
+        return generateMeditationText(input, interval.stage)
       })
     )
 
