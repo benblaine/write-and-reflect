@@ -49,18 +49,30 @@ export default function MeditationForm({ onMeditationGenerated }: MeditationForm
           onChange={(e) => setInput(e.target.value)}
           className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
           rows={4}
-          placeholder="e.g., relaxation, stress relief, mindfulness"
+          placeholder="e.g., overcoming anxiety, finding inner peace, boosting self-confidence"
           required
         />
       </div>
       {!isGenerated && (
         <div className="bg-gray-100 p-4 rounded-lg">
           <h3 className="text-lg font-semibold mb-2">How it works:</h3>
-          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-            <li>Enter your desired meditation theme or focus in the box above.</li>
-            <li>Click "Generate Meditation" to create your personalized guided meditation.</li>
-            <li>Follow the audio prompts and enjoy your tailored meditation experience.</li>
-          </ul>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+            <li>Enter your desired meditation theme or focus in the box above. Be specific about what you want to address or achieve in your meditation session.</li>
+            <li>Click &quot;Generate Meditation&quot; to create your personalized 6-minute guided meditation. This will produce three 2-minute audio segments.</li>
+            <li>Once generated, you&apos;ll see audio controls. Click &quot;Start Meditation&quot; when you&apos;re ready to begin.</li>
+            <li>Follow the audio guidance:
+              <ul className="list-disc list-inside ml-4 mt-1">
+                <li>0-2 min: Opening guidance</li>
+                <li>2-4 min: Silent reflection</li>
+                <li>4-6 min: Deepening guidance</li>
+                <li>6-8 min: Silent reflection</li>
+                <li>8-10 min: Insight guidance</li>
+                <li>10-12 min: Final reflection</li>
+              </ul>
+            </li>
+            <li>Adjust the background music volume as needed for your comfort.</li>
+            <li>The session will end automatically after 12 minutes with a gentle gong sound.</li>
+          </ol>
         </div>
       )}
       <button
