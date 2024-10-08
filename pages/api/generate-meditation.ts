@@ -52,6 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(audioFiles)
   } catch (error) {
     console.error('Detailed error:', error)
-    res.status(500).json({ message: 'Error generating meditation', error: error.message })
+    res.status(500).json({ message: 'Error generating meditation', error: error instanceof Error ? error.message : String(error) })
   }
 }

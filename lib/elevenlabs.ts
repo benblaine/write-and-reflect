@@ -1,4 +1,5 @@
 import { ElevenLabsClient } from "elevenlabs";
+import { Readable } from "stream";
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "Rachel";
@@ -15,8 +16,12 @@ export async function generateSpeech(text: string): Promise<string> {
       text,
     });
 
-    const audioBuffer = await audio.arrayBuffer();
-    const base64Audio = Buffer.from(audioBuffer).toString('base64');
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of audio) {
+      chunks.push(chunk);
+    }
+    const audioBuffer = Buffer.concat(chunks);
+    const base64Audio = audioBuffer.toString('base64');
     return `data:audio/mpeg;base64,${base64Audio}`;
   } catch (error) {
     console.error('Error generating speech:', error);
