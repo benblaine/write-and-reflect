@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  api: {
+    responseLimit: '8mb',
+  },
   webpack: (config, { isServer }) => {
     config.module.rules.push({
       test: /\.mp3$/,

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import { MeditationAudio } from '../lib/types'
 
 interface AudioPlayerProps {
@@ -10,16 +10,21 @@ interface AudioPlayerProps {
 export default function AudioPlayer({ audio, onEnded, autoPlay }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
 
+  const handleEnded = useCallback(() => {
+    onEnded()
+  }, [onEnded])
+
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.addEventListener('ended', onEnded)
+    const currentAudio = audioRef.current
+    if (currentAudio) {
+      currentAudio.addEventListener('ended', handleEnded)
     }
     return () => {
-      if (audioRef.current) {
-        audioRef.current.removeEventListener('ended', onEnded)
+      if (currentAudio) {
+        currentAudio.removeEventListener('ended', handleEnded)
       }
     }
-  }, [onEnded])
+  }, [handleEnded])
 
   useEffect(() => {
     if (autoPlay && audioRef.current) {
