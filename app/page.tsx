@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 
-export default function Home() {
+export default function Component() {
   const [input, setInput] = useState('')
   const [generatedText, setGeneratedText] = useState('')
   const [audioUrl, setAudioUrl] = useState('')
@@ -84,7 +84,7 @@ export default function Home() {
 
   const handlePlay = () => {
     if (voiceoverRef.current && backgroundMusicRef.current) {
-      voiceoverRef.current.playbackRate = 0.8 // speaking rate
+      voiceoverRef.current.playbackRate = 0.85 // Slowed down as per previous update
       voiceoverRef.current.play()
       backgroundMusicRef.current.play()
       setIsPlaying(true)
@@ -111,25 +111,27 @@ export default function Home() {
       <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Focus Session</CardTitle>
-          <CardDescription>Get guidance for your 2-minute focus session</CardDescription>
+          <CardDescription>Describe what you're preparing for</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
-                <Input
+                <Textarea
                   id="prompt"
-                  placeholder="What are you focusing on?"
+                  placeholder="Describe the event, goal, or challenge you're preparing for..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
+                  rows={4}
+                  className="resize-none"
                 />
               </div>
             </div>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col items-center">
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? 'Preparing...' : 'Generate Guidance'}
+          <Button onClick={handleSubmit} disabled={isLoading} className="w-full">
+            {isLoading ? 'Preparing...' : 'Generate Visualization'}
           </Button>
           {stage !== 'idle' && <p className="mt-2 text-sm text-gray-500">{stage}</p>}
           {audioUrl && (
