@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress"
 
 export default function Component() {
   const [input, setInput] = useState('')
-  const [generatedText, setGeneratedText] = useState('')
   const [audioUrl, setAudioUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [stage, setStage] = useState('idle')
@@ -61,7 +60,6 @@ export default function Component() {
         body: JSON.stringify({ prompt: input }),
       })
       const textData = await textResponse.json()
-      setGeneratedText(textData.text)
 
       setStage('Preparing audio')
 
@@ -111,7 +109,7 @@ export default function Component() {
       <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Focus Session</CardTitle>
-          <CardDescription>Describe what you're preparing for</CardDescription>
+          <CardDescription>Describe what you&apos;re preparing for</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -119,7 +117,7 @@ export default function Component() {
               <div className="flex flex-col space-y-1.5">
                 <Textarea
                   id="prompt"
-                  placeholder="Describe the event, goal, or challenge you're preparing for..."
+                  placeholder="Describe the event, goal, or challenge you&apos;re preparing for..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   rows={4}

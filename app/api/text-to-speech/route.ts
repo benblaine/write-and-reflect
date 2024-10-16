@@ -3,7 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
 
-const CHUNK_SIZE = 1024
 const VOICE_ID = 'Sh5k24mRW3DPnrSD5Qsl'
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
 
@@ -19,11 +18,11 @@ export async function POST(req: Request) {
     }
     const data = {
       text,
-      model_id: 'eleven_monolingual_v1',
+      model_id: 'eleven_turbo_v2_5',
       voice_settings: {
         stability: 0.3,
         similarity_boost: 1.0,
-        style: 0.5
+        style: 0.5,
       },
     }
 
