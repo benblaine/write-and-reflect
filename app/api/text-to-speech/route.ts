@@ -16,13 +16,7 @@ interface RequestData {
   };
 }
 
-interface RequestHeaders {
-  'Accept': string;
-  'Content-Type': string;
-  'xi-api-key': string;
-}
-
-async function makeRequest(url: string, data: RequestData, headers: RequestHeaders, retryCount = 0): Promise<AxiosResponse<ArrayBuffer>> {
+async function makeRequest(url: string, data: RequestData, headers: Record<string, string>, retryCount = 0): Promise<AxiosResponse<ArrayBuffer>> {
   try {
     const config: AxiosRequestConfig = {
       headers,
@@ -51,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`
-    const headers: RequestHeaders = {
+    const headers: Record<string, string> = {
       'Accept': 'audio/mpeg',
       'Content-Type': 'application/json',
       'xi-api-key': ELEVENLABS_API_KEY,
