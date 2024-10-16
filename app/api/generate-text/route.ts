@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         { 
           role: "system", 
@@ -23,12 +23,13 @@ export async function POST(req: Request) {
 • Maintain a calm and supportive tone throughout the message.
 • Ensure coherence and clarity, making sure the guidance is easy to follow.
 • Keep the message concise, exactly 100 words in length.
+• Include <break time="3.0s" /> tags at appropriate moments to create pauses in the audio. Use these sparingly, about 2-3 times in the script, to allow for reflection or to emphasize important points.
 
 Your goal is to help the user mentally prepare and practice for what's coming by guiding them through a focused visualization that boosts their readiness and confidence.`
         },
         { 
           role: "user", 
-          content: `Create a 100-word visualization guidance for a 2-minute focus session on: ${prompt}. Follow the guidelines provided in the system message.` 
+          content: `Create a 100-word visualization guidance for a 2-minute focus session on: ${prompt}. Follow the guidelines provided in the system message, including the use of <break time="3.0s" /> tags for pauses.` 
         },
       ],
     })

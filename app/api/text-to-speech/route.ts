@@ -1,19 +1,36 @@
 import { NextResponse } from 'next/server'
-import axios from 'axios'
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios'
 
-const VOICE_ID = 'Sh5k24mRW3DPnrSD5Qsl'
+const VOICE_ID = 'eAXJo7EKR0HNAKpJEEUz'
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
 const MAX_RETRIES = 3
 const INITIAL_DELAY = 1000 // 1 second
 
-async function makeRequest(url: string, data: any, headers: any, retryCount = 0) {
+interface RequestData {
+  text: string;
+  model_id: string;
+  voice_settings: {
+    stability: number;
+    similarity_boost: number;
+    style: number;
+  };
+}
+
+interface RequestHeaders {
+  'Accept': string;
+  'Content-Type': string;
+  'xi-api-key': string;
+}
+
+async function makeRequest(url: string, data: RequestData, headers: RequestHeaders, retryCount = 0): Promise<AxiosResponse<ArrayBuffer>> {
   try {
-    const response = await axios.post(url, data, {
+    const config: AxiosRequestConfig = {
       headers,
       responseType: 'arraybuffer',
       timeout: 30000, // 30 seconds timeout
-    })
-    return response
+    };
+    const response = await axios.post<ArrayBuffer>(url, data, config);
+    return response;
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
       const delay = INITIAL_DELAY * Math.pow(2, retryCount)
@@ -34,12 +51,12 @@ export async function POST(req: Request) {
     }
 
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`
-    const headers = {
+    const headers: RequestHeaders = {
       'Accept': 'audio/mpeg',
       'Content-Type': 'application/json',
       'xi-api-key': ELEVENLABS_API_KEY,
     }
-    const data = {
+    const data: RequestData = {
       text,
       model_id: 'eleven_turbo_v2_5',
       voice_settings: {

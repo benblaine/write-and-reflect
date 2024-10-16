@@ -20,7 +20,7 @@ export default function Component() {
 
   useEffect(() => {
     if (backgroundMusicRef.current) {
-      backgroundMusicRef.current.volume = 0.3 // Set background music volume to 30%
+      backgroundMusicRef.current.volume = 0.01 // Set background music volume to 1%
     }
   }, [])
 
@@ -49,46 +49,47 @@ export default function Component() {
   }, [isPlaying])
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
-  setStage('Generating guidance')
+    e.preventDefault()
+    setIsLoading(true)
+    setStage('Generating guidance')
 
-  try {
-    const textResponse = await fetch('/api/generate-text', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: input }),
-    })
-    const textData = await textResponse.json()
+    try {
+      const textResponse = await fetch('/api/generate-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: input }),
+      })
+      const textData = await textResponse.json()
 
-    setStage('Preparing audio')
+      setStage('Preparing audio')
 
-    const speechResponse = await fetch('/api/text-to-speech', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: textData.text }),
-    })
+      const speechResponse = await fetch('/api/text-to-speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textData.text }),
+      })
 
-    if (!speechResponse.ok) {
-      throw new Error('Failed to generate speech')
+      if (!speechResponse.ok) {
+        throw new Error('Failed to generate speech')
+      }
+
+      const audioBlob = await speechResponse.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      setAudioUrl(audioUrl)
+
+      setStage('Ready to start')
+    } catch (error) {
+      console.error('Error:', error)
+      setStage('Error occurred')
+    } finally {
+      setIsLoading(false)
     }
-
-    const audioBlob = await speechResponse.blob()
-    const audioUrl = URL.createObjectURL(audioBlob)
-    setAudioUrl(audioUrl)
-
-    setStage('Ready to start')
-  } catch (error) {
-    console.error('Error:', error)
-    setStage('Error occurred')
-  } finally {
-    setIsLoading(false)
   }
-}
 
   const handlePlay = () => {
     if (voiceoverRef.current && backgroundMusicRef.current) {
-      voiceoverRef.current.playbackRate = 0.85 // Slowed down as per previous update
+      voiceoverRef.current.volume = 1.0 // Set voice volume to maximum (100%)
+      voiceoverRef.current.playbackRate = 1.0 // Normal playback rate
       voiceoverRef.current.play()
       backgroundMusicRef.current.play()
       setIsPlaying(true)
