@@ -49,36 +49,42 @@ export default function Component() {
   }, [isPlaying])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setStage('Generating guidance')
+  e.preventDefault()
+  setIsLoading(true)
+  setStage('Generating guidance')
 
-    try {
-      const textResponse = await fetch('/api/generate-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input }),
-      })
-      const textData = await textResponse.json()
+  try {
+    const textResponse = await fetch('/api/generate-text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: input }),
+    })
+    const textData = await textResponse.json()
 
-      setStage('Preparing audio')
+    setStage('Preparing audio')
 
-      const speechResponse = await fetch('/api/text-to-speech', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textData.text }),
-      })
-      const speechData = await speechResponse.json()
-      setAudioUrl(speechData.audioUrl)
+    const speechResponse = await fetch('/api/text-to-speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: textData.text }),
+    })
 
-      setStage('Ready to start')
-    } catch (error) {
-      console.error('Error:', error)
-      setStage('Error occurred')
-    } finally {
-      setIsLoading(false)
+    if (!speechResponse.ok) {
+      throw new Error('Failed to generate speech')
     }
+
+    const audioBlob = await speechResponse.blob()
+    const audioUrl = URL.createObjectURL(audioBlob)
+    setAudioUrl(audioUrl)
+
+    setStage('Ready to start')
+  } catch (error) {
+    console.error('Error:', error)
+    setStage('Error occurred')
+  } finally {
+    setIsLoading(false)
   }
+}
 
   const handlePlay = () => {
     if (voiceoverRef.current && backgroundMusicRef.current) {

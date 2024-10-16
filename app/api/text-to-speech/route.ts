@@ -1,15 +1,38 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import axios from 'axios'
 
 const VOICE_ID = 'Sh5k24mRW3DPnrSD5Qsl'
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
+const MAX_RETRIES = 3
+const INITIAL_DELAY = 1000 // 1 second
+
+async function makeRequest(url: string, data: any, headers: any, retryCount = 0) {
+  try {
+    const response = await axios.post(url, data, {
+      headers,
+      responseType: 'arraybuffer',
+      timeout: 30000, // 30 seconds timeout
+    })
+    return response
+  } catch (error) {
+    if (retryCount < MAX_RETRIES) {
+      const delay = INITIAL_DELAY * Math.pow(2, retryCount)
+      console.log(`Retrying request (${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+      return makeRequest(url, data, headers, retryCount + 1)
+    }
+    throw error
+  }
+}
 
 export async function POST(req: Request) {
-  const { text } = await req.json()
-
   try {
+    const { text } = await req.json()
+
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ELEVENLABS_API_KEY is not set')
+    }
+
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`
     const headers = {
       'Accept': 'audio/mpeg',
@@ -26,19 +49,28 @@ export async function POST(req: Request) {
       },
     }
 
-    const response = await axios.post(url, data, { headers, responseType: 'arraybuffer' })
+    const response = await makeRequest(url, data, headers)
 
-    const publicDir = path.join(process.cwd(), 'public')
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir)
-    }
-
-    const outputPath = path.join(publicDir, 'output.mp3')
-    fs.writeFileSync(outputPath, response.data)
-
-    return NextResponse.json({ audioUrl: '/output.mp3' })
+    return new NextResponse(response.data, {
+      status: 200,
+      headers: {
+        'Content-Type': 'audio/mpeg',
+      },
+    })
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in text-to-speech API:', error)
+    
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        return NextResponse.json({ error: 'Request timed out' }, { status: 504 })
+      }
+      if (error.response) {
+        return NextResponse.json({ error: error.response.data }, { status: error.response.status })
+      } else if (error.request) {
+        return NextResponse.json({ error: 'No response received from server' }, { status: 503 })
+      }
+    }
+    
     return NextResponse.json({ error: 'Failed to convert text to speech' }, { status: 500 })
   }
 }
