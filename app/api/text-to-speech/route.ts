@@ -1,30 +1,42 @@
-import { NextResponse } from 'next/server'
-import axios from 'axios'
+import { NextResponse, NextRequest } from 'next/server'
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios'
 
 const VOICE_ID = 'eAXJo7EKR0HNAKpJEEUz'
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
 const MAX_RETRIES = 3
-const INITIAL_TIMEOUT = 10000 // 10 seconds
+const INITIAL_DELAY = 1000 // 1 second
 
-async function makeRequest(url: string, data: any, headers: any, retryCount = 0) {
+interface RequestData {
+  text: string;
+  model_id: string;
+  voice_settings: {
+    stability: number;
+    similarity_boost: number;
+    style: number;
+  };
+}
+
+async function makeRequest(url: string, data: RequestData, headers: Record<string, string>, retryCount = 0): Promise<AxiosResponse<ArrayBuffer>> {
   try {
-    const response = await axios.post(url, data, {
+    const config: AxiosRequestConfig = {
       headers,
       responseType: 'arraybuffer',
-      timeout: INITIAL_TIMEOUT * Math.pow(2, retryCount), // Exponential backoff
-    })
-    return response
+      timeout: 30000, // 30 seconds timeout
+    };
+    const response = await axios.post<ArrayBuffer>(url, data, config);
+    return response;
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
-      console.log(`Retry attempt ${retryCount + 1} for ElevenLabs API`)
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount))) // Wait before retrying
+      const delay = INITIAL_DELAY * Math.pow(2, retryCount)
+      console.log(`Retrying request (${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms`)
+      await new Promise(resolve => setTimeout(resolve, delay))
       return makeRequest(url, data, headers, retryCount + 1)
     }
     throw error
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { text } = await req.json()
 
@@ -32,13 +44,13 @@ export async function POST(req: Request) {
       throw new Error('ELEVENLABS_API_KEY is not set')
     }
 
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`
-    const headers = {
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`
+    const headers: Record<string, string> = {
       'Accept': 'audio/mpeg',
       'Content-Type': 'application/json',
       'xi-api-key': ELEVENLABS_API_KEY,
     }
-    const data = {
+    const data: RequestData = {
       text,
       model_id: 'eleven_turbo_v2_5',
       voice_settings: {
@@ -46,7 +58,6 @@ export async function POST(req: Request) {
         similarity_boost: 1.0,
         style: 0.5,
       },
-      output_format: 'mp3_44100_128',
     }
 
     const response = await makeRequest(url, data, headers)
@@ -62,7 +73,7 @@ export async function POST(req: Request) {
     
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED') {
-        return NextResponse.json({ error: 'Request timed out after multiple retries' }, { status: 504 })
+        return NextResponse.json({ error: 'Request timed out' }, { status: 504 })
       }
       if (error.response) {
         return NextResponse.json({ error: error.response.data }, { status: error.response.status })
